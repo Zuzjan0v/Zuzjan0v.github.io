@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Эрик — сайт-визитка</title>
+  <!-- Описание для поисковиков и превью ссылки в мессенджерах -->
+  <meta name="description" content="Эрик — учусь делать автоматизацию, ботов и простые инструменты с помощью ИИ.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Эрик — сайт-визитка">
+  <meta property="og:description" content="Учусь делать автоматизацию, ботов и простые инструменты с помощью ИИ.">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:locale:alternate" content="en_US">
+  <!-- Иконка во вкладке: SVG-картинка прямо в коде (буква E на тёмном квадрате).
+       %23 — это закодированный символ #, без этого цвет не сработает -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230f0f0f'/><rect x='2' y='2' width='60' height='60' rx='12' fill='none' stroke='%236ee7b7' stroke-width='3'/><text x='32' y='45' text-anchor='middle' font-family='Arial, sans-serif' font-weight='700' font-size='38' fill='%236ee7b7'>E</text></svg>">
+  <!-- Цвет верхней панели браузера на телефоне -->
+  <meta name="theme-color" content="#0f0f0f">
+  <script>
+    // Ставим сохранённый язык ещё до показа страницы, чтобы не мигал русский текст
+    try {
+      const savedLang = localStorage.getItem("lang");
+      if (savedLang === "ru" || savedLang === "en") {
+        document.documentElement.lang = savedLang;
+      }
+    } catch (e) {
+      // Если браузер запрещает хранилище — просто остаёмся на русском
+    }
+  </script>
+  <!-- Шрифты из Google Fonts: Manrope для текста, Unbounded для главного заголовка -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Акцентный цвет хранится в ОДНОЙ строке --accent-rgb: поменяй три числа
+       (красный, зелёный, синий от 0 до 255), и он поменяется на всём сайте.
+       Примеры: 110, 231, 183 — мятный; 167, 139, 250 — сиреневый; 251, 191, 36 — янтарный.
+       Только иконку во вкладке (строка <link rel="icon">) нужно поменять отдельно. */
+    :root {
+      --accent-rgb: 110, 231, 183;
+      --accent: rgb(var(--accent-rgb));
+      --accent-soft: rgba(var(--accent-rgb), 0.12);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: clip; /* ничего не вылезает вбок — нет горизонтальной прокрутки */
+      /* Полоса прокрутки в цветах сайта (Firefox и новые Chrome) */
+      scrollbar-color: #2e2e2e #0f0f0f;
+    }
+
+    /* То же для Safari и старых Chrome */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f0f0f;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #2e2e2e;
+      border-radius: 10px;
+      border: 2px solid #0f0f0f;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #0f0f0f;
+    }
+
+    body {
+      background-color: #0f0f0f;
+      color: #e5e5e5;
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 17px;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 24px 40px;
+      line-height: 1.6;
+    }
+
+    /* Подчёркивание нарисовано фоном-полоской: ширина 0% → 100% при наведении,
+       поэтому линия плавно «выезжает» слева направо */
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      background-image: linear-gradient(var(--accent), var(--accent));
+      background-size: 0% 1px;
+      background-position: 0 100%;
+      background-repeat: no-repeat;
+      padding-bottom: 2px;
+      transition: background-size 0.3s ease, color 0.2s ease;
+    }
+
+    a:hover {
+      background-size: 100% 1px;
+    }
+
+    /* Рамка при переходе по сайту клавишей Tab */
+    a:focus-visible,
+    #lang-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+
+    /* ===== Анимированный фон =====
+       Слой закреплён за всем сайтом (position: fixed, z-index: -2) и не ловит клики.
+       Внутри: три размытых цветных «пятна», которые медленно плавают,
+       сетка из точек и мягкая подсветка, которая следует за курсором. */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-blob {
+      position: absolute;
+      width: 60vmax;
+      height: 60vmax;
+      border-radius: 50%;
+      will-change: transform; /* подсказка браузеру: анимация будет плавнее */
+    }
+
+    /* Первое пятно — акцентного цвета, остальные — соседние оттенки (голубой и сиреневый) */
+    .bg-blob-1 {
+      top: -25vmax;
+      left: -20vmax;
+      background: radial-gradient(circle, rgba(var(--accent-rgb), 0.3), transparent 62%);
+      animation: drift-1 26s ease-in-out infinite alternate;
+    }
+
+    .bg-blob-2 {
+      bottom: -30vmax;
+      right: -25vmax;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.22), transparent 62%);
+      animation: drift-2 32s ease-in-out infinite alternate;
+    }
+
+    .bg-blob-3 {
+      top: 35%;
+      left: 45%;
+      width: 45vmax;
+      height: 45vmax;
+      background: radial-gradient(circle, rgba(167, 139, 250, 0.18), transparent 62%);
+      animation: drift-3 38s ease-in-out infinite alternate;
+    }
+
+    /* alternate — после конца анимация идёт обратно, поэтому пятна плавают туда-сюда без рывков */
+    @keyframes drift-1 {
+      to {
+        transform: translate(25vw, 20vh) scale(1.2);
+      }
+    }
+
+    @keyframes drift-2 {
+      to {
+        transform: translate(-20vw, -25vh) scale(1.15);
+      }
+    }
+
+    @keyframes drift-3 {
+      to {
+        transform: translate(-30vw, -15vh) scale(0.85);
+      }
+    }
+
+    /* Сетка из точек: видна сверху и плавно исчезает к низу (mask-image),
+       а сама медленно «едет» по диагонали */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.6px);
+      background-size: 28px 28px;
+      -webkit-mask-image: radial-gradient(ellipse 100% 90% at 50% 0%, #000 35%, transparent 85%);
+      mask-image: radial-gradient(ellipse 100% 90% at 50% 0%, #000 35%, transparent 85%);
+      animation: grid-move 6s linear infinite;
+    }
+
+    /* Сдвиг ровно на один шаг сетки — поэтому повтор незаметен */
+    @keyframes grid-move {
+      to {
+        background-position: 28px 28px;
+      }
+    }
+
+    /* Подсветка за курсором: координаты --mx и --my присылает JavaScript */
+    .bg-spotlight {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(450px circle at var(--mx, 50%) var(--my, -30%), rgba(var(--accent-rgb), 0.14), transparent 70%);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bg-blob,
+      .bg-grid {
+        animation: none;
+      }
+    }
+
+    /* Ссылка «Перейти к содержимому» спрятана над экраном и выезжает при фокусе с клавиатуры */
+    .skip-link {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 30;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0f0f0f;
+      font-weight: 600;
+      transform: translateY(-200%);
+      transition: transform 0.2s ease;
+    }
+
+    .skip-link:focus {
+      transform: none;
+    }
+
+    main {
+      scroll-margin-top: 90px;
+    }
+
+    main:focus {
+      outline: none;
+    }
+
+    /* «Липкое» меню: при прокрутке остаётся вверху экрана,
+       а полупрозрачный фон с размытием не даёт тексту под ним мешать */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    /* Подложка меню растянута на всю ширину экрана (100vw), хотя само меню — в колонке текста.
+       top: -24px закрывает отступ над меню */
+    header::before {
+      content: "";
+      position: absolute;
+      top: -24px;
+      bottom: 0;
+      left: 50%;
+      width: 100vw;
+      transform: translateX(-50%);
+      z-index: -1;
+      background: rgba(15, 15, 15, 0.75);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      transition: box-shadow 0.3s ease;
+    }
+
+    /* Когда страница прокручена, у меню появляется тень — видно, что оно «парит» над текстом */
+    header.scrolled::before {
+      box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Тонкая полоса вверху экрана: показывает, какую часть страницы уже прочитали.
+       Ширину задаёт JavaScript через scaleX — от 0 (начало) до 1 (конец) */
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 20;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 16px 0;
+      margin-bottom: 48px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    nav a {
+      color: #a0a0a0;
+    }
+
+    nav a:hover {
+      color: #ffffff;
+    }
+
+    /* Пункт меню того раздела, который сейчас на экране */
+    nav a.active {
+      color: #ffffff;
+      background-size: 100% 1px;
+    }
+
+    section {
+      margin-bottom: 72px;
+      scroll-margin-top: 90px; /* чтобы меню не закрывало заголовок раздела после клика */
+    }
+
+    /* Плавное появление: раздел сначала прозрачный и чуть ниже, потом «выплывает» */
+    section.reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    section.reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Если в системе включено «Уменьшить движение», анимацию не показываем */
+    @media (prefers-reduced-motion: reduce) {
+      section.reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
+    h1 {
+      font-family: "Unbounded", "Manrope", sans-serif;
+      font-weight: 600;
+      font-size: 36px;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      margin: 0 0 16px;
+      /* Текст залит градиентом: от белого к акцентному цвету */
+      width: fit-content;
+      background: linear-gradient(90deg, #ffffff 30%, var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Мягкое свечение за главным блоком */
+    #home {
+      position: relative;
+      padding-top: 16px;
+    }
+
+    #home::before {
+      content: "";
+      position: absolute;
+      top: -60px;
+      left: -24px;
+      right: -24px;
+      height: 280px;
+      background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(var(--accent-rgb), 0.14), transparent); /* свечение гаснет внутри блока — без резких краёв */
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    #home p {
+      font-size: 18px;
+      color: #c8c8c8;
+      max-width: 34em;
+    }
+
+    h2 {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8a8a8a;
+      margin: 0 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Короткая мятная черта перед заголовком раздела */
+    h2::before {
+      content: "";
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+
+    /* Заметки оформлены как «лента времени»: вертикальная линия слева
+       и кружок напротив каждой заметки */
+    .note {
+      position: relative;
+      margin-left: 6px;
+      padding: 0 0 28px 28px;
+      border-left: 1px solid #262626;
+    }
+
+    .note::before {
+      content: "";
+      position: absolute;
+      left: -7px;
+      top: 4px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #0f0f0f;
+      border: 2px solid var(--accent);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* При наведении кружок «загорается» */
+    .note:hover::before {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .note-date {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .note h3 {
+      font-size: 18px;
+      margin: 4px 0 8px;
+    }
+
+    .note-text {
+      color: #c0c0c0;
+      margin: 0;
+    }
+
+    /* Заглушка «Проекты»: карточка с мягким мятным свечением сверху */
+    .placeholder {
+      border: 1px solid #262626;
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      color: #9a9a9a;
+      background:
+        radial-gradient(circle at 50% 0%, var(--accent-soft), transparent 70%),
+        #141414;
+      transition: border-color 0.3s ease;
+    }
+
+    .placeholder:hover {
+      border-color: rgba(var(--accent-rgb), 0.35);
+    }
+
+    /* Значок-«таблетка» с пульсирующей точкой */
+    .placeholder-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(var(--accent-rgb), 0.3);
+      border-radius: 999px;
+      padding: 4px 12px;
+      margin-bottom: 16px;
+    }
+
+    .placeholder-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.6);
+      }
+      70%,
+      100% {
+        box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0);
+      }
+    }
+
+    .placeholder-text {
+      margin: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .placeholder-dot {
+        animation: none;
+      }
+    }
+
+    html[lang="ru"] .en {
+      display: none;
+    }
+
+    html[lang="en"] .ru {
+      display: none;
+    }
+
+    #lang-btn {
+      margin-left: auto;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      font: inherit;
+      padding: 2px 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* При наведении кнопка заливается акцентом и чуть приподнимается */
+    #lang-btn:hover {
+      background: var(--accent);
+      color: #0f0f0f;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.25);
+    }
+
+    /* Неактивный язык приглушён, активный — яркий и жирный */
+    #lang-btn [data-lang] {
+      opacity: 0.55;
+      transition: opacity 0.2s ease;
+    }
+
+    #lang-btn [data-lang].is-active {
+      opacity: 1;
+      font-weight: 700;
+    }
+
+    .lang-sep {
+      margin: 0 4px;
+      opacity: 0.4;
+    }
+
+    /* При нажатии — как будто кнопку вдавили */
+    #lang-btn:active {
+      transform: translateY(0) scale(0.96);
+      box-shadow: none;
+    }
+
+    /* Контакты: карточки с иконками */
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .contact-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1px solid #262626;
+      border-radius: 14px;
+      background: #141414;
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .contact-card:hover {
+      border-color: rgba(var(--accent-rgb), 0.35);
+      transform: translateY(-2px);
+    }
+
+    .contact-icon {
+      width: 40px;
+      height: 40px;
+      padding: 9px;
+      box-sizing: border-box;
+      border-radius: 10px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      flex-shrink: 0;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      flex: 1 1 auto; /* auto: если не помещается, кнопка «Скопировать» уйдёт на новую строку, а адрес не разорвётся */
+    }
+
+    .contact-label {
+      font-size: 13px;
+      color: #6b6b6b;
+    }
+
+    .contact-info a {
+      overflow-wrap: anywhere;
+    }
+
+    /* Кнопка «Скопировать» */
+    .copy-btn {
+      margin-left: auto;
+      font: inherit;
+      font-size: 14px;
+      color: #a0a0a0;
+      background: none;
+      border: 1px solid #333333;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* Пока не скопировали — видна надпись «Скопировать», после — «Скопировано ✓» */
+    .copy-done {
+      display: none;
+    }
+
+    .copy-btn.copied {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-btn.copied .copy-default {
+      display: none;
+    }
+
+    .copy-btn.copied .copy-done {
+      display: inline;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .contact-card:hover {
+        transform: none;
+      }
+    }
+
+    /* Подвал сайта */
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-top: 24px;
+      border-top: 1px solid #2a2a2a;
+      font-size: 14px;
+      color: #6b6b6b;
+    }
+
+    .to-top-arrow {
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+
+    /* При наведении стрелка чуть подпрыгивает вверх */
+    .to-top:hover .to-top-arrow {
+      transform: translateY(-3px);
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 26px;
+      }
+
+      section {
+        margin-bottom: 56px;
+      }
+
+      /* На телефоне меню компактнее, чтобы «липкая» полоса не занимала пол-экрана */
+      nav {
+        gap: 12px 16px;
+        padding: 12px 0;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Анимированный фон (только украшение, поэтому aria-hidden) -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-spotlight"></div>
+  </div>
+
+  <!-- Скрытая ссылка для тех, кто ходит по сайту клавишей Tab: появляется при первом нажатии -->
+  <a href="#main" class="skip-link">
+    <span class="ru">Перейти к содержимому</span><span class="en">Skip to content</span>
+  </a>
+
+  <div class="progress" aria-hidden="true"></div>
+
+  <header>
+    <nav>
+      <a href="#home"><span class="ru">Главная</span><span class="en">Home</span></a>
+      <a href="#projects"><span class="ru">Проекты</span><span class="en">Projects</span></a>
+      <a href="#learned"><span class="ru">Чему я научился</span><span class="en">What I learned</span></a>
+      <a href="#contacts"><span class="ru">Контакты</span><span class="en">Contacts</span></a>
+      <!-- data-lang, а не class="ru"/"en": иначе CSS спрятал бы один из вариантов -->
+      <button id="lang-btn" type="button">
+        <span data-lang="ru">RU</span><span class="lang-sep" aria-hidden="true">/</span><span data-lang="en">EN</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+
+  <section id="home">
+    <h1>
+      <span class="ru">Привет! Меня зовут Эрик</span>
+      <span class="en">Hi! My name is Erik</span>
+    </h1>
+    <p class="ru">Я учусь делать автоматизацию, ботов и простые инструменты с помощью ИИ.</p>
+    <p class="en">I'm learning to build automations, bots and simple tools with the help of AI.</p>
+  </section>
+
+  <section id="projects">
+    <h2><span class="ru">Проекты</span><span class="en">Projects</span></h2>
+    <div class="placeholder">
+      <span class="placeholder-badge">
+        <span class="placeholder-dot" aria-hidden="true"></span>
+        <span class="ru">В работе</span>
+        <span class="en">In progress</span>
+      </span>
+      <p class="placeholder-text">
+        <span class="ru">Скоро здесь будут мои работы.</span>
+        <span class="en">My work will appear here soon.</span>
+      </p>
+    </div>
+  </section>
+
+  <section id="learned">
+    <h2><span class="ru">Чему я научился</span><span class="en">What I learned</span></h2>
+
+    <div class="note">
+      <p class="note-date">
+        <span class="ru">21 октября 2026</span>
+        <span class="en">October 21, 2026</span>
+      </p>
+      <h3>
+        <span class="ru">Сделал свой первый сайт</span>
+        <span class="en">Built my first website</span>
+      </h3>
+      <p class="note-text">
+        <span class="ru">Узнал, что HTML отвечает за содержимое страницы, а CSS за её внешний вид. Научился делать ссылки, меню и тёмную тему.</span>
+        <span class="en">Learned that HTML is responsible for the content of a page and CSS for how it looks. Learned to make links, a menu and a dark theme.</span>
+      </p>
+    </div>
+  </section>
+
+  <section id="contacts">
+    <h2><span class="ru">Контакты</span><span class="en">Contacts</span></h2>
+    <div class="contact-list">
+      <div class="contact-card">
+        <!-- Иконки нарисованы SVG прямо в коде; stroke="currentColor" = цвет текста -->
+        <svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 4 3 11l6 2.5L11.5 20l3-4.5L19 19z"/>
+          <path d="m9 13.5 6.5-5"/>
+        </svg>
+        <div class="contact-info">
+          <span class="contact-label">Telegram</span>
+          <a href="https://t.me/Zuzjan0v" target="_blank" rel="noopener">@Zuzjan0v</a>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="m3.5 7 8.5 6 8.5-6"/>
+        </svg>
+        <div class="contact-info">
+          <span class="contact-label">Email</span>
+          <a href="mailto:erik.eigird@gmail.com">erik.eigird@gmail.com</a>
+        </div>
+        <button class="copy-btn" type="button" data-copy="erik.eigird@gmail.com">
+          <span class="copy-default"><span class="ru">Скопировать</span><span class="en">Copy</span></span>
+          <span class="copy-done"><span class="ru">Скопировано ✓</span><span class="en">Copied ✓</span></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer>
+    <span>
+      © <span id="year">2026</span>
+      <span class="ru">Эрик</span><span class="en">Erik</span>
+    </span>
+    <a href="#home" class="to-top">
+      <span class="ru">Наверх</span><span class="en">Back to top</span>
+      <span class="to-top-arrow" aria-hidden="true">↑</span>
+    </a>
+  </footer>
+
+  <script>
+    const button = document.getElementById("lang-btn");
+    const html = document.documentElement;
+
+    // Название вкладки на каждом языке
+    const titles = {
+      ru: "Эрик — сайт-визитка",
+      en: "Erik — personal website"
+    };
+
+    // Подсвечиваем текущий язык на кнопке и меняем название вкладки
+    function updateButton() {
+      button.querySelectorAll("[data-lang]").forEach(function (option) {
+        option.classList.toggle("is-active", option.dataset.lang === html.lang);
+      });
+      button.setAttribute("aria-label", html.lang === "ru" ? "Switch to English" : "Переключить на русский");
+      document.title = titles[html.lang];
+    }
+
+    button.addEventListener("click", function () {
+      html.lang = html.lang === "ru" ? "en" : "ru";
+      updateButton();
+
+      // Запоминаем выбор, чтобы после обновления страницы язык не сбрасывался
+      try {
+        localStorage.setItem("lang", html.lang);
+      } catch (e) {
+        // Хранилище недоступно — язык просто не запомнится
+      }
+    });
+
+    updateButton();
+
+    // Появление разделов при прокрутке.
+    // IntersectionObserver следит за разделами и сообщает, когда раздел попал на экран.
+    const sections = document.querySelectorAll("section");
+
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target); // показали один раз, дальше не следим
+        }
+      });
+    }, { threshold: 0.15 });
+
+    sections.forEach(function (section) {
+      section.classList.add("reveal");
+      observer.observe(section);
+    });
+
+    // Подсветка пункта меню того раздела, который сейчас на экране.
+    const navLinks = document.querySelectorAll("nav a");
+
+    function highlightMenu() {
+      let current = sections[0].id;
+
+      // Текущий раздел — последний, чей верх уже дошёл до меню
+      sections.forEach(function (section) {
+        if (section.getBoundingClientRect().top <= 120) {
+          current = section.id;
+        }
+      });
+
+      // В самом низу страницы подсвечиваем последний раздел (Контакты)
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (atBottom) {
+        current = sections[sections.length - 1].id;
+      }
+
+      navLinks.forEach(function (link) {
+        const isActive = link.getAttribute("href") === "#" + current;
+        link.classList.toggle("active", isActive);
+
+        // aria-current подсказывает программам для незрячих, какой раздел сейчас открыт
+        if (isActive) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    const header = document.querySelector("header");
+    const progress = document.querySelector(".progress");
+
+    // Полоса прогресса и тень у меню
+    function updateProgress() {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const part = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+      progress.style.transform = "scaleX(" + part + ")";
+      header.classList.toggle("scrolled", window.scrollY > 10);
+    }
+
+    // При каждой прокрутке обновляем меню, полосу и тень
+    function onScroll() {
+      highlightMenu();
+      updateProgress();
+    }
+
+    window.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    onScroll();
+
+    // Кнопка «Скопировать email»
+    const copyBtn = document.querySelector(".copy-btn");
+
+    function showCopied() {
+      copyBtn.classList.add("copied");
+      setTimeout(function () {
+        copyBtn.classList.remove("copied");
+      }, 2000); // через 2 секунды надпись вернётся обратно
+    }
+
+    copyBtn.addEventListener("click", function () {
+      const text = copyBtn.dataset.copy;
+
+      // Современный способ копирования; если браузер его не даёт — запасной вариант
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(showCopied).catch(function () {
+          copyFallback(text);
+        });
+      } else {
+        copyFallback(text);
+      }
+    });
+
+    // Запасной способ: временное поле с текстом, выделяем и копируем
+    function copyFallback(text) {
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      try {
+        if (document.execCommand("copy")) {
+          showCopied();
+        }
+      } catch (e) {
+        // Скопировать не получилось — адрес всё равно виден на странице
+      }
+      field.remove();
+    }
+
+    // Подсветка фона за курсором — только там, где есть мышь (на телефоне её нет)
+    if (window.matchMedia("(pointer: fine)").matches) {
+      const bg = document.querySelector(".bg");
+
+      window.addEventListener("pointermove", function (event) {
+        bg.style.setProperty("--mx", event.clientX + "px");
+        bg.style.setProperty("--my", event.clientY + "px");
+      });
+    }
+
+    // Текущий год в подвале — обновится сам, когда наступит новый год
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
